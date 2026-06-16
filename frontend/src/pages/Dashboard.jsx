@@ -213,7 +213,9 @@ const Dashboard = () => {
               {data.consumption?.find(c => c.ingredient_name.toUpperCase() === activeTab) 
                 ? parseFloat(data.consumption.find(c => c.ingredient_name.toUpperCase() === activeTab).consumed_qty).toFixed(2) 
                 : '0.00'} 
-              <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginLeft: '0.5rem' }}>KG</span>
+              <span style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginLeft: '0.5rem' }}>
+                {data.stock?.find(s => s.name.toUpperCase() === activeTab)?.unit || ''}
+              </span>
             </div>
           </div>
           
