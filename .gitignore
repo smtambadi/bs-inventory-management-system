@@ -1,0 +1,27 @@
+backend/venv/
+frontend/node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+db.sqlite3
+*.sqlite3
+
+# Agent Scratch Scripts
+check_*.py
+test_*.py
+clean_*.py
+fix_*.py
+reset_*.py
+search.py
+query_inventory.py
+output.txt
+update_category.py
+
+# Binaries and Temp
+VANG/bin/
+VANG/obj/
+.vs/
+*.rar
+*.zip
