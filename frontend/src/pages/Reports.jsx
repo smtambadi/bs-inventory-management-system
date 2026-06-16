@@ -1,46 +1,62 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import client from '../api/client';
-import { Download, Filter } from 'lucide-react';
+import { Download, Filter, X } from 'lucide-react';
+
+// Default: last 30 days
+const getDefaultDates = () => {
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - 30);
+  const fmt = d => d.toISOString().split('T')[0];
+  return { start: fmt(start), end: fmt(end) };
+};
 
 const Reports = () => {
   const { reportName } = useParams();
-  const [searchParams, setSearchParams] = useSearchParams();
-  
-  const [startDate, setStartDate] = useState(searchParams.get('start') || '');
-  const [endDate, setEndDate] = useState(searchParams.get('end') || '');
-  
+  const defaults = getDefaultDates();
+
+  const [startDate, setStartDate] = useState(defaults.start);
+  const [endDate, setEndDate] = useState(defaults.end);
+  const [appliedStart, setAppliedStart] = useState(defaults.start);
+  const [appliedEnd, setAppliedEnd] = useState(defaults.end);
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchReport = () => {
+  const fetchReport = (start, end) => {
     setLoading(true);
     setError(null);
-    
     let url = `reports/${reportName}/`;
     const params = new URLSearchParams();
-    if (startDate) params.append('start', startDate);
-    if (endDate) params.append('end', endDate);
+    if (start) params.append('start', start);
+    if (end) params.append('end', end);
     if (params.toString()) url += `?${params.toString()}`;
 
     client.get(url)
-      .then(res => {
-        setData(res.data);
-        setLoading(false);
-      })
-      .catch(err => {
-        setError(err.toString());
-        setLoading(false);
-      });
+      .then(res => { setData(res.data); setLoading(false); })
+      .catch(err => { setError(err.toString()); setLoading(false); });
   };
 
+  // Re-fetch when report changes (keep current date filter)
   useEffect(() => {
-    fetchReport();
-  }, [reportName, searchParams]);
+    fetchReport(appliedStart, appliedEnd);
+  }, [reportName]);
 
   const handleApplyFilter = () => {
-    setSearchParams({ start: startDate, end: endDate });
+    setAppliedStart(startDate);
+    setAppliedEnd(endDate);
+    fetchReport(startDate, endDate);
+  };
+
+  const handleClearFilter = () => {
+    const d = getDefaultDates();
+    setStartDate(d.start);
+    setEndDate(d.end);
+    setAppliedStart(d.start);
+    setAppliedEnd(d.end);
+    fetchReport(d.start, d.end);
   };
 
   const getReportTitle = () => {
@@ -98,25 +114,28 @@ const Reports = () => {
     <div>
       <div className="flex justify-between items-center" style={{ marginBottom: '2rem' }}>
         <h2>{getReportTitle()}</h2>
-        <div className="flex gap-4">
-          <div className="flex items-center gap-2">
+        <div className="flex gap-4" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="flex items-center gap-2" style={{ flexWrap: 'wrap' }}>
             <input 
               type="date" 
               className="form-control" 
+              style={{ width: 'auto' }}
               value={startDate} 
               onChange={e => setStartDate(e.target.value)} 
-              placeholder="Start Date"
             />
             <span style={{ color: 'var(--text-secondary)' }}>to</span>
             <input 
               type="date" 
               className="form-control" 
+              style={{ width: 'auto' }}
               value={endDate} 
               onChange={e => setEndDate(e.target.value)} 
-              placeholder="End Date"
             />
-            <button className="btn btn-secondary" onClick={handleApplyFilter} style={{ padding: '0.6rem 1rem' }}>
-              <Filter size={16} /> Filter
+            <button className="btn btn-primary" onClick={handleApplyFilter} style={{ padding: '0.6rem 1.2rem' }}>
+              <Filter size={16} /> Apply
+            </button>
+            <button className="btn btn-secondary" onClick={handleClearFilter} style={{ padding: '0.6rem 0.8rem' }} title="Reset to last 30 days">
+              <X size={16} />
             </button>
           </div>
           <button className="btn btn-secondary" onClick={handleExport} disabled={data.length === 0}>

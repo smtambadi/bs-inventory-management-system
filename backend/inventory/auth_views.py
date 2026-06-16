@@ -4,7 +4,15 @@ from rest_framework import status
 from django.contrib.auth import authenticate
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
+
+class PublicUserListView(APIView):
+    """Returns only usernames — used by login page dropdown. No password info exposed."""
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        usernames = list(User.objects.filter(is_active=True).values_list('username', flat=True).order_by('username'))
+        return Response(usernames)
 
 class LoginView(APIView):
     def post(self, request):

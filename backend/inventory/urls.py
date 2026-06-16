@@ -1,9 +1,10 @@
 from django.urls import path
 from .views import DashboardView, InventoryView, SyncRunView, SyncProcessView, PurchaseView, PurchaseDetailView, PurchaseItemDetailView, ReportView
-from .auth_views import LoginView, UserManagementView
+from .auth_views import LoginView, UserManagementView, PublicUserListView
 
 urlpatterns = [
     path('login/', LoginView.as_view()),
+    path('users/list/', PublicUserListView.as_view()),
     path('users/', UserManagementView.as_view()),
     path('users/<int:user_id>/', UserManagementView.as_view()),
     path('dashboard/', DashboardView.as_view()),

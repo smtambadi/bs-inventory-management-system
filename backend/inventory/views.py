@@ -88,10 +88,53 @@ class DashboardView(APIView):
 
 class InventoryView(APIView):
     permission_classes = [IsAuthenticated]
+
     def get(self, request):
+        from django.db.models import Sum
         items = InventoryItem.objects.all()
-        from .serializers import InventoryItemSerializer
-        return Response(InventoryItemSerializer(items, many=True).data)
+        result = []
+        for item in items:
+            stock = InventoryTransaction.objects.filter(
+                InventoryItemId=item.InventoryItemId
+            ).aggregate(total=Sum('Quantity'))['total'] or 0
+
+            # Last 10 transactions
+            txns = InventoryTransaction.objects.filter(
+                InventoryItemId=item.InventoryItemId
+            ).order_by('-TransactionDate')[:10]
+
+            txn_list = [{
+                'type': t.TransactionType,
+                'qty': float(t.Quantity),
+                'ref': t.ReferenceType,
+                'date': t.TransactionDate.strftime('%d %b %Y') if t.TransactionDate else ''
+            } for t in txns]
+
+            result.append({
+                'id': item.InventoryItemId,
+                'name': item.ItemName,
+                'unit': item.Unit,
+                'reorder_level': float(item.ReorderLevel),
+                'is_active': item.IsActive,
+                'current_stock': float(stock),
+                'status': 'LOW' if float(stock) <= float(item.ReorderLevel) else 'OK',
+                'transactions': txn_list,
+            })
+        return Response(result)
+
+    def put(self, request):
+        """Update reorder level for an inventory item."""
+        if not request.user.is_staff:
+            return Response({'error': 'Admin only'}, status=status.HTTP_403_FORBIDDEN)
+        item_id = request.data.get('id')
+        reorder_level = request.data.get('reorder_level')
+        try:
+            item = InventoryItem.objects.get(InventoryItemId=item_id)
+            item.ReorderLevel = reorder_level
+            item.save()
+            return Response({'message': 'Reorder level updated'})
+        except InventoryItem.DoesNotExist:
+            return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
 
 class SyncRunView(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]

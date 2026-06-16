@@ -13,7 +13,7 @@ import UserManagement from './pages/UserManagement';
 const ProtectedRoute = ({ children, adminOnly = false }) => {
   const { user } = useAuth();
   if (!user) return <Navigate to="/login" />;
-  if (adminOnly && !user.is_admin) return <Navigate to="/" />;
+  if (adminOnly && !user.is_admin) return <Navigate to="/purchases" replace />;
   return children;
 };
 
@@ -26,8 +26,8 @@ const AppRoutes = () => {
         <Route index element={<Dashboard />} />
         <Route path="inventory" element={<Inventory />} />
         <Route path="purchases" element={<Purchases />} />
-        <Route path="sync" element={<SyncCenter />} />
-        <Route path="reports/:reportName" element={<Reports />} />
+        <Route path="sync" element={<ProtectedRoute adminOnly={true}><SyncCenter /></ProtectedRoute>} />
+        <Route path="reports/:reportName" element={<ProtectedRoute adminOnly={true}><Reports /></ProtectedRoute>} />
         <Route path="users" element={<ProtectedRoute adminOnly={true}><UserManagement /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

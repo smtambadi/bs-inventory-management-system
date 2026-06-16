@@ -1,32 +1,44 @@
 .layout-container {
   display: flex;
-  min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
 }
 
 .main-content {
   flex: 1;
-  margin-left: 260px; /* Width of sidebar */
+  margin-left: 260px;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  transition: margin-left 0.3s ease;
+}
+
+.main-content.collapsed {
+  margin-left: 80px;
 }
 
 .main-header {
-  height: 70px;
+  height: 60px;
+  min-height: 60px;
   background-color: var(--bg-primary);
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 2rem;
-  position: sticky;
-  top: 0;
   z-index: 10;
+  flex-shrink: 0;
 }
 
 .header-left h1 {
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 600;
   margin: 0;
+}
+
+.hover-bg:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 .user-profile {
@@ -46,9 +58,13 @@
   align-items: center;
   justify-content: center;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .page-content {
-  padding: 2rem;
+  padding: 1.25rem 1.75rem;
   flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
