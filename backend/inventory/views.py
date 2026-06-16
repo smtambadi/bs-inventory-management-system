@@ -46,6 +46,10 @@ class DashboardView(APIView):
                 WHERE B.BillSettled = 1 
                   {date_filter}
                   AND UPPER(MI.Category) IN ('CHICKEN', 'MUTTON', 'BOTI', 'RICE', 'EGG')
+                  AND EXISTS (
+                      SELECT 1 FROM BIERSYMPHONYDB.dbo.MenuItemConsumption MC
+                      WHERE MC.MenuItemName COLLATE DATABASE_DEFAULT = MI.IName COLLATE DATABASE_DEFAULT
+                  )
                 GROUP BY 
                     UPPER(MI.Category),
                     MI.IName
