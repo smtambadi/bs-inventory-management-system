@@ -31,7 +31,7 @@ class DashboardView(APIView):
         with connection.cursor() as cursor:
             query = f"""
                 SELECT 
-                    UPPER(MI.Category) AS category,
+                    UPPER(II.ItemName) AS category,
                     MI.IName AS name,
                     SUM(KT.SaleQty) AS total_qty,
                     SUM(KT.SaleQty * KT.SaleRate) AS total_amount
@@ -39,19 +39,17 @@ class DashboardView(APIView):
                 INNER JOIN VANGROTIPARKDB.dbo.POS_Tab_KOTBill_Details BD ON B.BillId = BD.BillId
                 INNER JOIN VANGROTIPARKDB.dbo.POS_TAB_KOTTRANSACTIONDATA KT ON BD.KtNo = KT.KTNo
                 INNER JOIN (
-                    SELECT ICode, IName, MIN(Category) AS Category
+                    SELECT ICode, IName
                     FROM VANGROTIPARKDB.dbo.IN_Menu_Items
                     GROUP BY ICode, IName
                 ) MI ON KT.ICode = MI.ICode
+                INNER JOIN BIERSYMPHONYDB.dbo.MenuItemConsumption MC ON MI.IName COLLATE DATABASE_DEFAULT = MC.MenuItemName COLLATE DATABASE_DEFAULT
+                INNER JOIN BIERSYMPHONYDB.dbo.InventoryItem II ON MC.InventoryItemId = II.InventoryItemId
                 WHERE B.BillSettled = 1 
                   {date_filter}
-                  AND UPPER(MI.Category) IN ('CHICKEN', 'MUTTON', 'BOTI', 'RICE', 'EGG')
-                  AND EXISTS (
-                      SELECT 1 FROM BIERSYMPHONYDB.dbo.MenuItemConsumption MC
-                      WHERE MC.MenuItemName COLLATE DATABASE_DEFAULT = MI.IName COLLATE DATABASE_DEFAULT
-                  )
+                  AND UPPER(II.ItemName) IN ('CHICKEN', 'MUTTON', 'BOTI', 'RICE', 'EGG')
                 GROUP BY 
-                    UPPER(MI.Category),
+                    UPPER(II.ItemName),
                     MI.IName
                 ORDER BY total_amount DESC
             """
